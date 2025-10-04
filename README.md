@@ -49,16 +49,22 @@ cat wrangler.toml
 
 特に`wrangler.toml`はデプロイするWorkersの名称等が記載されており、確認をする必要があります。
 
-## 5. R2 の作成と Welcome の登録
+## 5. R2 バケットの作成
+
 ```sh
 wrangler r2 bucket create handson-assets
-wrangler r2 object put handson-assets/welcome.html \
-  --file assets/welcome.html \
-  --content-type "text/html; charset=utf-8" \
-  --remote
 ```
 
-## 6. ローカルで動作確認
+## 6. Welcome ドキュメントの設置（ローカル）
+
+以下のコマンドはローカルR2を操作します。
+```sh
+wrangler r2 object put handson-assets/welcome.html \
+  --file assets/welcome.html \
+  --content-type "text/html; charset=utf-8"
+```
+
+## 7. ローカルで動作確認
 ```sh
 wrangler dev
 # 別ターミナルで確認します
@@ -68,8 +74,20 @@ curl -i http://127.0.0.1:8787/unknown
 ```
 挙動: `/` は R2 から Welcome を配信し、`/sample-500` は 500、その他は 404 を返します。`/favicon.ico` は 204 を返します。
 
-## 7. デプロイ
+## 8. Welcome ドキュメントの設置（リモート）
+
+以下のコマンドはリモートR2を操作します（デプロイ前に実施してください）。
 ```sh
-wrangler publish
+wrangler r2 object put handson-assets/welcome.html \
+  --file assets/welcome.html \
+  --content-type "text/html; charset=utf-8" \
+  --remote
 ```
-出力された URL（workers.dev または設定済みのカスタムドメイン）へアクセスして動作を確認します。
+
+## 9. デプロイ
+```sh
+wrangler deploy
+```
+出力された URL（workers.dev）へアクセスして動作を確認します。
+
+
