@@ -90,4 +90,28 @@ wrangler deploy
 ```
 出力された URL（workers.dev）へアクセスして動作を確認します。
 
+---
+
+## example/workersの動作方法
+
+ローカル動作確認
+
+```sh
+cd example/worker
+wrangler r2 object put handson-assets/welcome.html \
+  --file assets/welcome.html \
+  --content-type "text/html; charset=utf-8"
+wrangler dev
+```
+
+デプロイ
+
+```sh
+cd example/worker
+wrangler r2 object put handson-assets/welcome.html \
+  --file assets/welcome.html \
+  --content-type "text/html; charset=utf-8" \
+  --remote
+wrangler deploy
+```
 
