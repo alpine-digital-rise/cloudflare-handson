@@ -18,29 +18,14 @@ https://cn.teldevice.co.jp/blog/p35630/
 
 ## ドメイン/ゾーンの課金・制約（DNS委譲の違い）
 - 課金単位: 1ゾーン（=1ドメイン）ごとにFree/Pro/Business/Enterpriseのいずれかを選択。
-- 料金目安（USD・概算）: Free=$0、Pro≈$20/月/ゾーン、Business≈$200/月/ゾーン、Enterprise=個別見積もり。
+  - サブドメインをゾーンに設定できるのはEnterpriseのみ
+- 料金目安（USD・概算）:
+  - Free $0
+  - Pro≈$20/月/ゾーン
+  - Business≈$200/月/ゾーン
+  - Enterprise=個別見積もり(結構高額)
 - 追加機能: Argo/APO/Bot Management/画像最適化等は別途課金あり。最新価格は公式を確認。
 
-### フルDNS（ネームサーバーをCloudflareへ委譲）
-- 可用性: 全プランで利用可能。
-- 特徴: 権威DNSをCloudflareに移管して管理（高速・冗長）。CDN/WAF/SSL/TLS/ページルール/Zero Trust/Workersルート等がフルに利用可能。
-- Apexの扱い: CNAMEフラッテンによりApex（@）もプロキシ/配信可能。
-- 注意: NS変更権限が必要。既存DNSの設定はCloudflare側へ移設する。
-
-### パーシャルDNS（CNAME Setup、部分委譲）
-- 可用性: 主にEnterpriseで提供される運用形態（Business/Proは原則対象外）。最新の可用性は要確認。
-- 特徴: 既存の権威DNSは維持しつつ、特定サブドメインのみをCloudflareのターゲットへCNAMEし、プロキシ/セキュリティを付与。
-- 制約: ゾーンApex（@）はCNAME不可のため原則プロキシ不可。CloudflareのDNS機能（DNSSEC/ゾーンレベルの高度機能など）は利用不可。利用できる製品や設定が限定される。
-- 代替: Apexも含めたい場合はフルDNS委譲、またはCloudflare for SaaSの採用、外部DNSのALIAS/ANAME機能の活用を検討。
-
-### Workersとドメインの関係
-- フルDNS: 任意のホスト名にWorkersのルート/カスタムドメインを割当可能。
-- パーシャルDNS: 標準では制約が多く、Enterprise/Cloudflare for SaaS等が必要になるケースが多い。簡易利用は `*.workers.dev` を利用。
-
-### 運用判断の目安
-- NSを変更できる環境ならフルDNSが基本（機能/可視性/柔軟性が最大）。
-- NS変更不可（レジストラ/社内ポリシー等）ならパーシャルDNSを検討。ただしプラン要件と機能制限を事前確認。
-- プランはゾーン単位で選択し、重要度やトラフィックに応じてFree/Pro/Businessを使い分ける。
 
 ## 主力プロダクト
 - CDN: 静的/動的コンテンツ配信の高速化・キャッシュ
@@ -52,35 +37,26 @@ https://cn.teldevice.co.jp/blog/p35630/
 - KV/D1/Queues/Pages/Turnstile など、開発を支える各種サービス
 
 ## R2の説明（オブジェクトストレージ）
-- 特徴: S3互換API、バケット/オブジェクトでファイルを保存。外部転送コストを抑えた設計。
-- 使い所: 画像/HTML/ログ/バックアップ等の保存、Workersからの読み書き
-- 開発フロー例: `wrangler r2 object put <bucket>/<key> --file <path>` でアップロードし、Workersから`env.ASSETS.get(key)`で取得
+- S3互換API、バケット/オブジェクトでファイルを保存。外部転送コストを抑えた設計。
+- Egress（インターネット/Cloudflare経由の外向き転送）は無料
+- Egress無料な点がとても優秀で、それだけでR2を使う理由になる
 
 ### R2の料金のポイント
-- Egress（インターネット/Cloudflare経由の外向き転送）は無料
+- Egress無料
 - ストレージは使用量（GB-月）に応じた従量課金
 - リクエストは種別ごとに課金（例: Class A=PUT/LISTなど、Class B=GETなど）
 - Workers↔R2間のデータ転送も追加の帯域料金なし（操作回数は課金対象）
 - 小規模利用向けの無料枠あり（開発・検証に便利）
 
-
 ## CDNの説明（配信最適化）
-- しくみ: 利用者に近いエッジにキャッシュし、待ち時間を短縮
-- 効果: レイテンシ低減、オリジン負荷軽減、帯域最適化
-- 運用要点: キャッシュTTL/キー、パスごとのキャッシュ有無、バイパス/パージの使い分け
-
-### キャッシュの考え方（ブラウザ vs エッジ）
-- ブラウザキャッシュ: 利用者端末のローカルに保存。`Cache-Control`, `ETag`, `Last-Modified` で挙動を制御。
-- エッジキャッシュ（Cloudflare）: PoPに保存。`Cache-Control` や Cloudflare のキャッシュルールでTTL/キー/バイパスを制御。
-- 代表的な可視化: レスポンスヘッダー `CF-Cache-Status`（`HIT/MISS/BYPASS/EXPIRED` など）。
-
-参考
-https://it-trend.jp/cdn/14003
-
-<img src="https://cdn.it-trend.jp/product_page_info_details/31582/current/main?1718346450" alt="CDNの概念図" width="640" />
+- 利用者に近いエッジにキャッシュし、待ち時間を短縮
+- 効果
+  - レイテンシ低減、オリジン負荷軽減、帯域最適化
+- 運用要点
+  - キャッシュTTL/キー、パスごとのキャッシュ有無、バイパス/パージの使い分け
 
 ## Workersの説明（エッジサーバレス）
-- 特徴: グローバルエッジでJavaScript/TypeScriptを超低遅延実行
+- グローバルエッジでJavaScript/TypeScriptを超低遅延実行
 - トリガー: HTTPリクエスト（fetch）、Cron、Queues など
 - 連携: KV/R2/D1/Queues/Secrets と統合。`wrangler`で開発/デプロイ
 - 簡単な例:
@@ -94,7 +70,7 @@ https://it-trend.jp/cdn/14003
   };
   ```
 
-このリポジトリでは、WorkersでR2に置いた`welcome.html`を返す例や、500/404のサンプルレスポンスを通じて、開発からデプロイまでを体験します。
+このリポジトリでは、WorkersでR2に置いた`welcome.html`を扱う例などを紹介しています
 
 ### Workersの料金のポイント
 - 無料枠あり（一定のリクエスト数/CPU時間）
