@@ -115,3 +115,10 @@ wrangler r2 object put handson-assets/welcome.html \
 wrangler deploy
 ```
 
+---
+
+## （ドメインが必要）ドメインの操作
+ドメインをお持ちで、Cloudflareに権威ドメインを移行している場合、ドメインからの配信を実施できます。
+
+[ドメイン利用](README-use-domain.md)
+
