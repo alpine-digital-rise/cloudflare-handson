@@ -14,10 +14,9 @@ wrangler login        # ブラウザで認証します
 wrangler whoami       # ログイン状態を確認します
 ```
 
-## 2. R2 のサブスクリプションを有効化
-ブラウザで Cloudflare R2 のページを開き、サブスクリプションを有効化します。課金が発生する可能性がありますのでご留意ください。
+# シンプルなWorkersの作成
 
-## 3. Workers とドキュメントの生成（Gemini CLI）
+## 2. Workers とドキュメントの生成（Gemini CLI）
 このリポジトリのルートで Gemini CLI を起動し、Workers とドキュメントを生成します。
 
 ```sh
@@ -28,7 +27,68 @@ gemini
 プロンプト例（要点のみ抜粋）:
 ```
 以下の要件を満たす Cloudflare Workers（TypeScript, modules）のコードを生成してください。
-(./exampleフォルダはサンプルですので、まったく参照しないで作成してください)
+(./examplesフォルダはサンプルですので、まったく参照しないで作成してください)
+
+- すべてのHTTPリクエストをfetchで受け付ける
+- "/" は welcomeページとしてHTMLを返してください（内容はお任せします）
+- "/test" は 何かサンプルのHTMLを返してください（内容はお任せします）
+- 他のパスは404を返します
+
+wrangler.tomlも作成してください
+
+日本語で回答してください。
+.gitignoreは編集、上書きしないでください。
+```
+対話でコマンド実行やファイル生成の確認が求められます。内容を確認しながら許可してください（不適切な提案は中断して再指示します）。
+
+## 3. プロジェクト確認
+
+生成されたソースファイルを確認します。
+もし何か改善や指示があれば、引き続きgeminiに自然言語で指示してください。
+
+```sh
+cd handson
+cat wrangler.toml
+```
+
+特に`wrangler.toml`はデプロイするWorkersの名称等が記載されており、確認が必要です。
+
+
+## 4. ローカルで動作確認
+```sh
+cd handson
+wrangler dev
+# 別ターミナルで確認します
+curl -i http://127.0.0.1:8787/
+curl -i http://127.0.0.1:8787/test
+curl -i http://127.0.0.1:8787/hoge
+```
+
+## 5. デプロイ
+```sh
+wrangler deploy
+```
+出力された URL（workers.dev）へアクセスして動作を確認します。
+
+---
+
+# R2を使ったWorkersの作成
+
+## 6. R2 のサブスクリプションを有効化
+ブラウザで Cloudflare R2 のページを開き、サブスクリプションを有効化します。課金が発生する可能性がありますのでご留意ください。
+
+## 7. Workers とドキュメントの生成（Gemini CLI）
+このリポジトリのルートで Gemini CLI を起動し、Workers とドキュメントを生成します。
+
+```sh
+cd path-to-this-repository
+gemini
+```
+
+プロンプト例（要点のみ抜粋）:
+```
+以下の要件を満たす Cloudflare Workers（TypeScript, modules）のコードを生成してください。
+(./examplesフォルダはサンプルですので、まったく参照しないで作成してください)
 
 - すべてのHTTPリクエストをfetchで受け付ける
 - "/" は R2（バインド名 ASSETS）から `WELCOME_OBJECT_KEY` で指定した welcome.html を返す
@@ -40,22 +100,22 @@ gemini
 ```
 対話でコマンド実行やファイル生成の確認が求められます。内容を確認しながら許可してください（不適切な提案は中断して再指示します）。
 
-## 4. プロジェクト確認
+## 8. プロジェクト確認
 別ターミナルを開き、生成物を確認します。
 ```sh
 cd handson
 cat wrangler.toml
 ```
 
-特に`wrangler.toml`はデプロイするWorkersの名称等が記載されており、確認をする必要があります。
+特に`wrangler.toml`はデプロイするWorkersの名称等が記載されており、確認が必要です。
 
-## 5. R2 バケットの作成
+## 9. R2 バケットの作成
 
 ```sh
 wrangler r2 bucket create handson-assets
 ```
 
-## 6. Welcome ドキュメントの設置（ローカル）
+## 10. Welcome ドキュメントの設置（ローカル）
 
 以下のコマンドはローカルR2を操作します。
 ```sh
@@ -64,7 +124,7 @@ wrangler r2 object put handson-assets/welcome.html \
   --content-type "text/html; charset=utf-8"
 ```
 
-## 7. ローカルで動作確認
+## 11. ローカルで動作確認
 ```sh
 wrangler dev
 # 別ターミナルで確認します
@@ -74,7 +134,7 @@ curl -i http://127.0.0.1:8787/unknown
 ```
 挙動: `/` は R2 から Welcome を配信し、`/sample-500` は 500、その他は 404 を返します。`/favicon.ico` は 204 を返します。
 
-## 8. Welcome ドキュメントの設置（リモート）
+## 12. Welcome ドキュメントの設置（リモート）
 
 以下のコマンドはリモートR2を操作します（デプロイ前に実施してください）。
 ```sh
@@ -84,7 +144,7 @@ wrangler r2 object put handson-assets/welcome.html \
   --remote
 ```
 
-## 9. デプロイ
+## 13. デプロイ
 ```sh
 wrangler deploy
 ```
@@ -92,12 +152,12 @@ wrangler deploy
 
 ---
 
-## example/workersの動作方法
+## examples/worker の動作方法
 
 ローカル動作確認
 
 ```sh
-cd example/worker
+cd examples/worker
 wrangler r2 object put handson-assets/welcome.html \
   --file assets/welcome.html \
   --content-type "text/html; charset=utf-8"
@@ -107,7 +167,7 @@ wrangler dev
 デプロイ
 
 ```sh
-cd example/worker
+cd examples/worker
 wrangler r2 object put handson-assets/welcome.html \
   --file assets/welcome.html \
   --content-type "text/html; charset=utf-8" \
@@ -121,4 +181,3 @@ wrangler deploy
 ドメインをお持ちで、Cloudflareに権威ドメインを移行している場合、ドメインからの配信を実施できます。
 
 [ドメイン利用](README-use-domain.md)
-

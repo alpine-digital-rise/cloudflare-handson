@@ -5,11 +5,11 @@
 - クレジットカード登録済み
 
 ## サブドメインの扱い
-- Cloudflareはサブドメインを扱うことはできますが、ゾーン登録できません。（Enterpriseプランが必要です）
+- Cloudflareはサブドメインを扱うことはできますが、ゾーン登録できません（Enterpriseプランが必要です）。
   - つまり、権威ドメイン以下すべてのサブドメインを1つのゾーンで管理することになります
 
 ## Cloudflareのゾーン
-- `example.com`のドメイン配下のサブドメインすべてを１つのゾーンで管理します
+- `example.com`のドメイン配下のサブドメインすべてを1つのゾーンで管理します
 - 以下のような注意点があります
   - 他のゾーンにサブドメインをNSレコードで委譲することは可能
     - `sub.example.com`をAWS Route53に委譲することは可能
@@ -17,7 +17,7 @@
     - Cacheの設定
     - URLルールの設定
     - Workersルートの設定
-    - などなどが、制約を受けます。
+- などが制約を受けます。
 
 ## 実践
 
@@ -49,8 +49,8 @@ test.example.com/my-test/index.html
 
 <img src="./docs/images/r2-response-header.png" />
 
-- CacheがDYNAMICで実施されていることがわかる
-  - CloudflareはHTMLドキュメントはデフォルトではキャッシュされない
+- Cache が DYNAMIC であることがわかる
+  - Cloudflare は HTML ドキュメントをデフォルトではキャッシュしない
 - Cloudflareから配信されていることがわかる
 
 ### Workersルートの設定
@@ -63,7 +63,7 @@ test.example.com/my-test/index.html
 test.example.com/api/*
 ```
 
-1. workersを作成
+1. Workers を作成
 
 ```javascript
 export default {
@@ -115,14 +115,18 @@ function json(data: unknown, status = 200): Response {
 test.example.com/api/*
 ```
 
-先ほど作ったWorkersを紐づけする
+先ほど作ったWorkersを紐づける
 
 3. ブラウザで確認する
 
 ```
 test.example.com/api/
-test.example.com/api/ping
 test.example.com/api/catfact
 test.example.com/api/time
 ```
 
+---
+
+## 後片付け
+
+[削除](README-delete-cf.md)
